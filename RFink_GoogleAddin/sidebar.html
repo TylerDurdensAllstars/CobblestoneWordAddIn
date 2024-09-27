@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <base target="_top">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 10px;
+        }
+        button {
+            margin-top: 10px;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Insert Contract Template</h1>
+    <select id="template-dropdown"></select>
+    <button id="insert-template">Insert Template</button>
+    <div id="message"></div>
+
+    <script>
+        // Load templates when the sidebar is opened
+        document.addEventListener('DOMContentLoaded', loadTemplates);
+
+        async function loadTemplates() {
+            try {
+                const response = await google.script.run.withSuccessHandler(displayTemplates).getTemplates();
+                if (!response) {
+                    throw new Error('No templates found.');
+                }
+            } catch (error) {
+                console.error('Error fetching templates:', error);
+                document.getElementById('message').innerText = 'Failed to load templates';
+            }
+        }
+
+        function displayTemplates(templates) {
+            const dropdown = document.getElementById('template-dropdown');
+            dropdown.innerHTML = ''; // Clear any existing options
+            templates.forEach(template => {
+                const option = document.createElement('option');
+                option.value = template.id;
+                option.textContent = template.name;
+                dropdown.appendChild(option);
+            });
+        }
+
+        document.getElementById('insert-template').addEventListener('click', async () => {
+            const dropdown = document.getElementById('template-dropdown');
+            const selectedTemplateId = dropdown.value;
+            if (!selectedTemplateId) {
+                document.getElementById('message').innerText = 'Please select a template.';
+                return;
+            }
+
+            try {
+                await google.script.run.insertTemplate(selectedTemplateId);
+                document.getElementById('message').innerText = 'Template inserted!';
+            } catch (error) {
+                console.error('Error inserting template:', error);
+                document.getElementById('message').innerText = 'Error inserting template. Please try again.';
+            }
+        });
+    </script>
+</body>
+</html>
